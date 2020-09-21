@@ -5,25 +5,36 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.3.RELEASE</version>
+        <version>2.3.4.RELEASE</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.mfs</groupId>
-    <artifactId>resources-management</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
-    <name>resources-management</name>
-    <description>This is a resources management system. This system
-        provide static resources storage service and accelerated visit service. </description>
-    <packaging>war</packaging>
-    <modules>
-        <module>rm-web</module>
-        <module>rm-client</module>
-        <module>rm-core</module>
-        <module>rm-server</module>
-    </modules>
+    <artifactId>rm-client</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>rm-client</name>
+    <description>client jar,communite by socket</description>
+
     <properties>
         <java.version>1.8</java.version>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>

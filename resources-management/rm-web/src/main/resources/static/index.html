@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>rms首页</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="js/angular.min.js"></script>
+    <script src="js/angular-cookies.min.js"></script>
+    <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+    <script src="js/base.js"></script>
+    <script src="js/service/fileService.js"></script>
+    <script src="js/controller/fileController.js"></script>
+    <style>
+        * { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; }
+        .contextmenu { display: none; position: absolute; width: 200px; margin: 0; padding: 0; background: #FFFFFF; border-radius: 5px; list-style: none; box-shadow: 0 15px 35px rgba(50,50,90,0.1),  0 5px 15px rgba(0,0,0,0.07); overflow: hidden; z-index: 999999; }
+
+        .contextmenu li { border-left: 3px solid transparent; transition: ease .2s; }
+
+        .contextmenu li a { display: block; padding: 10px; color: #B0BEC5; text-decoration: none; transition: ease .2s; }
+
+        .contextmenu li:hover { background: #CE93D8; border-left: 3px solid #9C27B0; }
+
+        .contextmenu li:hover a { color: #FFFFFF; }
+    </style>
+</head>
+<body ng-app="mfs" ng-controller="fileController" style="margin: 100px auto;width: 500px">
+
+    <div class="alert alert-warning">
+        <a href="#" class="close" data-dismiss="alert">
+        &times;
+        </a>
+        <strong>注意！！！</strong>您可以按照一下地址访问您的资源：http://39.107.143.34/rms/您的文件路径
+    </div>
+
+    <ul class="contextmenu" id="menu1">
+
+        <li><a data-toggle="modal" data-target="#createDirectoryModal">新建目录</a></li>
+
+        <li><a data-toggle="modal" data-target="#createDocumentModal">上传文件</a></li>
+
+        <li><a ng-click="deleteDirectory()">删除目录</a></li>
+
+        <li><a data-toggle="modal" data-target="#renameDirectoryModal">重命名</a></li>
+
+    </ul>
+    <div class="modal fade" id="createDirectoryModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="createDirectoryModalLabel">
+                        创建目录
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <input type="text" maxlength="16" ng-model="data.newName" placeholder="请输入目录名">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                    </button>
+                    <button type="button" class="btn btn-primary" ng-click="createDirectory()">
+                        提交更改
+                    </button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+
+    <div class="modal fade" id="createDocumentModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="createDocumentModalLabel">
+                        导入文件(最大10M)
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal" role="form" enctype="multipart/form-data" method="post">
+                        <div class="form-group">
+                            <div class="col-sm-10">
+                                <input type="file" class="form-control" name="file" id="leading-in-document" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">取消
+                            </button>
+                            <button type="submit" id="importButton" class="btn btn-success" ng-click="createDocument()">
+                                导入
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+
+    <div class="modal fade" id="renameDirectoryModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="renameDirectoryModalLabel">
+                        重命名
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <input type="text" maxlength="16" ng-model="data.newName" placeholder="请输入新文件名">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                    </button>
+                    <button type="button" class="btn btn-primary" ng-click="renameDirectory()">
+                        提交更改
+                    </button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+
+    <ul class="contextmenu" id="menu2">
+
+        <li><a ng-click="deleteDocument()">删除文件</a></li>
+
+        <li><a data-toggle="modal" data-target="#renameDocumentModal">重命名</a></li>
+
+    </ul>
+    <div class="modal fade" id="renameDocumentModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="renameDocumentModalLabel">
+                        重命名
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <input type="text" maxlength="16" ng-model="data.newName" placeholder="请输入新文件名">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                    </button>
+                    <button type="button" class="btn btn-primary" ng-click="renameDocument()">
+                        提交更改
+                    </button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+
+    <div>
+        <ul class="list-group">
+            <li id="a" class="list-group-item" data-path="{{data.root.path}}" data-directory="{{data.root.directory}}" ng-click="hidden($event)">
+                <span class="badge" ng-if="data.root.directory">文件夹</span>
+                <span class="name" style="color: blue" ng-if="data.root.directory">{{data.root.name}}</span>
+                <span class="name" ng-if="!data.root.directory">{{data.root.name}}</span>
+            </li>
+        </ul>
+    </div>
+</body>
+<script>
+
+    $(document).ready(function(){
+
+        $("li").contextmenu(function (e) {
+            var path = e.target.getAttribute("data-path");
+            var id = e.target.getAttribute("id");
+            var directory = e.target.getAttribute("data-directory");
+            if (path != null && path != undefined && id != null && id != undefined && directory != null && directory != undefined) {
+                var winWidth = $(document).width();
+
+                var winHeight = $(document).height();
+
+                var posX = e.pageX;
+
+                var posY = e.pageY;
+                var menuWidth;
+                var menuHeight;
+                if (directory == "true") {
+                    menuWidth = $("#menu1").width();
+                    menuHeight = $("#menu1").height();
+                } else {
+                    menuWidth = $("#menu2").width();
+                    menuHeight = $("#menu2").height();
+                }
+
+                var secMargin = 10;
+
+                if(posX + menuWidth + secMargin >= winWidth
+
+                    && posY + menuHeight + secMargin >= winHeight){
+
+                    posLeft = posX - menuWidth - secMargin + "px";
+
+                    posTop = posY - menuHeight - secMargin + "px";
+
+                }
+
+                else if(posX + menuWidth + secMargin >= winWidth){
+
+                    posLeft = posX - menuWidth - secMargin + "px";
+
+                    posTop = posY + secMargin + "px";
+
+                }
+
+                else if(posY + menuHeight + secMargin >= winHeight){
+
+                    posLeft = posX + secMargin + "px";
+
+                    posTop = posY - menuHeight - secMargin + "px";
+
+                }
+
+                else {
+
+                    posLeft = posX + secMargin + "px";
+
+                    posTop = posY + secMargin + "px";
+
+                };
+                if (directory == "true") {
+                    $("#menu1").attr("data-path",path);
+                    $("#menu1").attr("data-id",id);
+                    $("#menu1").css({
+
+                        "left": posLeft,
+
+                        "top": posTop
+
+                    }).show();
+                } else {
+                    $("#menu2").attr("data-path",path);
+                    $("#menu2").attr("data-id",id);
+                    $("#menu2").css({
+
+                        "left": posLeft,
+
+                        "top": posTop
+
+                    }).show();
+                }
+                return false;
+            } else {
+                return true;
+            }
+        })
+        $(document).click(function(){
+
+            $(".contextmenu").hide();
+
+        });
+    });
+
+</script>
+</html>
