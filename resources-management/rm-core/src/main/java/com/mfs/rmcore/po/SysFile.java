@@ -6,23 +6,23 @@ import java.util.*;
 
 public class SysFile implements Serializable {
     /** File对象*/
-    private File file;
+    private volatile File file;
     /** 该文件的父文件*/
-    private SysFile parent;
+    private volatile SysFile parent;
 
     /**
     * 以下数据要传往前端，所以配备了相应的getter,setter方法
     * */
     /** 文件名*/
-    private String name;
+    private volatile String name;
     /** 该文件的所有者*/
-    private String owner;
+    private volatile String owner;
     /** 文件路径，绝对路径*/
-    private String path;
+    private volatile String path;
     /** 是否是文件夹*/
-    private boolean directory;
+    private volatile boolean directory;
     /** 子文件*/
-    private Set<SysFile> list = new HashSet<>();
+    private volatile Set<SysFile> list = new HashSet<>();
 
     /**
      * getter setter
@@ -38,7 +38,7 @@ public class SysFile implements Serializable {
     public synchronized String getPath() {
         return path;
     }
-    private SysFile getParent(){
+    public SysFile parent(){
         return parent;
     }
 
@@ -119,9 +119,8 @@ public class SysFile implements Serializable {
             e.printStackTrace();
         } finally {
             try {
-                is.close();
                 os.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

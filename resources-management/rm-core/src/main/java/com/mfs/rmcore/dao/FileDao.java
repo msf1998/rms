@@ -5,13 +5,15 @@ import com.mfs.rmcore.po.User;
 import org.springframework.stereotype.Repository;
 import java.io.*;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.Set;
+import java.util.function.Predicate;
 
 @Repository
 public class FileDao {
     /** 所管理的文件空间，因为该项目的布置在了一个负载均衡的服务器的环境中所以有三个空间*/
     //private static String[] path = new String[]{"/usr/local/src/tomcat/apache-tomcat-8.5.57-1/webapps/rms","/usr/local/src/tomcat/apache-tomcat-8.5.57-2/webapps/rms","/usr/local/src/tomcat/apache-tomcat-8.5.57-3/webapps/rms"};
     //for test
-    private static String[] path = new String[]{"E:/test1","E:/test2","E:/test3"};
+    private static volatile String[] path = new String[]{"E:/test1","E:/test2","E:/test3"};
     /** 文件空间缓存*/
     private static final SysFile[] sysFileCache = new SysFile[path.length];
     /**
@@ -83,7 +85,7 @@ public class FileDao {
      * @param user 用户对象
      * @return SysFile 用户的跟文件对象，找不到则返回null
      * */
-    public SysFile queryMyRootDirectory(User user) {
+    public synchronized SysFile queryMyRootDirectory(User user) {
         return queryMyRootDirectory(sysFileCache[0],user);
     }
     private SysFile queryMyRootDirectory(SysFile sysFile,User user) {
@@ -92,10 +94,10 @@ public class FileDao {
 
     /**
      * 获取指定路径的文件
-     * @param path 要查找的文件的路径
+     * @param path 要查找的文件的路径(相对路径)
      * @return SysFile 查找出的文件对象，找不到则返回null
      * */
-    public SysFile queryOne(String path) {
+    public synchronized SysFile queryOne(String path) {
         return queryOne(sysFileCache[0],path);
     }
     private SysFile queryOne(SysFile sysFile, String path) {
@@ -109,7 +111,7 @@ public class FileDao {
      * @param fileName 文件夹名
      * @return true 或者 false
      * */
-    public boolean createDirectory(String path, String fileName) throws FileAlreadyExistsException {
+    public synchronized boolean createDirectory(String path, String fileName) throws FileAlreadyExistsException {
         SysFile[] sysFile = sysFileCache;
         for (int i = 0; i < sysFile.length; i ++) {
             boolean directory = createDirectory(sysFile[i], path, fileName);
@@ -122,6 +124,9 @@ public class FileDao {
     }
     private boolean createDirectory(SysFile sysFile, String path, String fileName) throws FileAlreadyExistsException {
         SysFile file = sysFile.getFile(path);
+        if (!file.isDirectory()) {
+            return false;
+        }
         if (file == null) return false;
         File newFile = new File(sysFile.getPath() + path + "/" + fileName);
         if (!newFile.exists()) {
@@ -140,19 +145,38 @@ public class FileDao {
      * @param inputStream 输入流
      * @return true 或者 false
      * */
-    public boolean createDocument(String path, String name, InputStream inputStream) {
-        SysFile[] sysFile = sysFileCache;
-        for (int i = 0; i < sysFile.length; i ++) {
-            boolean document = createDocument(sysFile[i], path, name, inputStream);
-            if (!document) {
-                System.out.println(FileDao.class.getName() + "创建第" + (i + 1) + "文档失败");
-                return false;
+    public synchronized boolean createDocument(String path, String name, InputStream inputStream) {
+        try {
+            SysFile[] sysFile = sysFileCache;
+            for (int i = 0; i < sysFile.length; i ++) {
+                boolean document = createDocument(sysFile[i], path, name, inputStream);
+                if (!document) {
+                    System.out.println(FileDao.class.getName() + "创建第" + (i + 1) + "文档失败");
+                    return false;
+                } else {
+                    inputStream.close();
+                    inputStream = new FileInputStream(queryOne(path + "/" + name).getPath());
+                }
+            }
+            return true;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                inputStream.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        return true;
+        return false;
     }
     private boolean createDocument(SysFile sysFile, String path, String name, InputStream is) {
         SysFile root = sysFile.getFile(path);
+        if (!root.isDirectory()) {
+            return false;
+        }
         return root.createDocument(name,is);
     }
 
@@ -161,7 +185,7 @@ public class FileDao {
      * @param path 文件的路径（相对路径，相对文件空间的路径）
      * @return true 或者 false
      * */
-    public boolean deleteFile(String path) {
+    public synchronized boolean deleteFile(String path) {
         SysFile[] sysFile = sysFileCache;
         for (int i = 0; i < sysFile.length; i ++) {
             boolean b = deleteFile(sysFile[i], path);
@@ -174,7 +198,8 @@ public class FileDao {
     }
     private boolean deleteFile(SysFile sysFile, String path) {
         SysFile file = sysFile.getFile(path);
-        return file.delete();
+        SysFile parent = file.parent();
+        return file.delete() && parent == null ? true : parent.getList().remove(file);
     }
 
     /**
@@ -183,7 +208,7 @@ public class FileDao {
      * @param newName 新的文件名
      * @return true 或者 false
      * */
-    public boolean renameFile(String path, String newName) {
+    public synchronized boolean renameFile(String path, String newName) {
         SysFile[] sysFile = sysFileCache;
         for (int i = 0; i < sysFile.length; i ++) {
             boolean b = renameFile(sysFile[i], path, newName);

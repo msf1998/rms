@@ -2,8 +2,7 @@ package com.mfs.rmweb.controller;
 
 import com.mfs.rmcore.po.File;
 import com.mfs.rmcore.po.Result;
-import com.mfs.rmcore.po.SysFile;
-import com.mfs.rmweb.service.FileService;
+import com.mfs.rmweb.serviceImpl.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

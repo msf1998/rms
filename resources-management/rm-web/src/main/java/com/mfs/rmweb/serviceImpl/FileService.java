@@ -1,4 +1,4 @@
-package com.mfs.rmweb.service;
+package com.mfs.rmweb.serviceImpl;
 
 import com.mfs.rmcore.dao.FileDao;
 import com.mfs.rmcore.po.Result;
@@ -65,7 +65,7 @@ public class FileService {
             SysFile sysFile = fileDao.queryOne(path);
             if (sysFile != null) {
                 if (sysFile.getOwner() != null && sysFile.getOwner().equals(user.getUsername())) {
-                    boolean directory = fileDao.createDocument(path, file.getName(), file.getInputStream());
+                    boolean directory = fileDao.createDocument(path, file.getOriginalFilename(), file.getInputStream());
                     if (directory) return new Result(1,"创建成功",fileDao.queryMyRootDirectory(user));
                     return new Result(2,"创建失败",null);
                 }

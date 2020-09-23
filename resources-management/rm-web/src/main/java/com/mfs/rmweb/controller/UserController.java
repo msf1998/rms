@@ -2,7 +2,7 @@ package com.mfs.rmweb.controller;
 
 import com.mfs.rmcore.po.Result;
 import com.mfs.rmcore.po.User;
-import com.mfs.rmweb.service.UserService;
+import com.mfs.rmweb.serviceImpl.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
